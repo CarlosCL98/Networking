@@ -7,7 +7,7 @@ import java.util.Scanner;
 public class URLReader {
 
     public static void main(String[] args) throws Exception {
-        
+
         System.out.println("Ingrese la URL: ");
         Scanner sc = new Scanner(System.in);
         String urlScanner = sc.nextLine();
@@ -20,17 +20,19 @@ public class URLReader {
         }
         FileWriter fw = new FileWriter(file);
         BufferedWriter bw = new BufferedWriter(fw);
-       
-        try (BufferedReader reader = new BufferedReader(new InputStreamReader(url.openStream()))) {
+
+        try {
+            BufferedReader reader = new BufferedReader(new InputStreamReader(url.openStream()));
             String inputLine = null;
             while ((inputLine = reader.readLine()) != null) {
-            	bw.write(inputLine);
+                bw.write(inputLine);
             }
             bw.close();
+            reader.close();
         } catch (IOException x) {
             System.err.println(x);
         }
-        
+
     }
 
 }
