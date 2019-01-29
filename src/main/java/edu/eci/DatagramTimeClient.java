@@ -26,20 +26,20 @@ public class DatagramTimeClient {
 			while(true){				
 				socket.send(packet);				
 				packet = new DatagramPacket(buf, buf.length);		
-				System.out.println("1");
+				//System.out.println("1");
 				try {					
 					socket.receive(packet);
-					System.out.println("LA address: " + packet.getAddress());
+					//System.out.println("LA address: " + packet.getAddress());
 				} catch (SocketTimeoutException ex) {
 					while(packet.getAddress() == null) {
-						System.out.println("LA address: " + packet.getAddress());	
+						//System.out.println("LA address: " + packet.getAddress());	
 						System.out.println("LA MISMA: " + received);
 						Thread.sleep(2000);
 					}
 					socket.send(packet);				
 					packet = new DatagramPacket(buf, buf.length);	
 				}
-				System.out.println(socket.getSoTimeout());
+				//System.out.println(socket.getSoTimeout());
 				received = new String(packet.getData(), 0, packet.getLength());
 				System.out.println("Date: " + received);
 				Thread.sleep(2000);
