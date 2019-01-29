@@ -20,24 +20,13 @@ public class HttpServer {
         BufferedReader in = null;
         try {
             System.out.println("Listo para recibir ...");
-            while (true) {
-            	clientSocket = serverSocket.accept();
-            	
-            	respuestaSolicitud(clientSocket, in, out);
-            }            
+            clientSocket = serverSocket.accept();         
         } catch (IOException e) {
             System.err.println("Accept failed.");
             System.exit(1);
         }
         
-        out.close();
-        in.close();
-        clientSocket.close();
-        serverSocket.close();
-    }
-    
-    public static void respuestaSolicitud(Socket clientSocket, BufferedReader in, PrintWriter out) throws IOException {
-    	out = new PrintWriter(clientSocket.getOutputStream(), true);
+        out = new PrintWriter(clientSocket.getOutputStream(), true);
         in = new BufferedReader(new InputStreamReader(clientSocket.getInputStream()));
         
         //Muestra la petición del cliente.
@@ -49,7 +38,16 @@ public class HttpServer {
             }   
         }
         
+        out.println("HTTP/1.1 200 OK");
+        out.println("content-type: text/html");
+        out.println();
+        out.flush();
         outputLine = "<!DOCTYPE html>" + "<html>" + "<head>" + "<meta charset=\"UTF-8\">" + "<title>Title of the document</title>\n" + "</head>" + "<body>" + "My Web Site" + "</body>" + "</html>" + inputLine;
         out.println(outputLine);
+        
+        out.close();
+        in.close();
+        clientSocket.close();
+        serverSocket.close();
     }
 }

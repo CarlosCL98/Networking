@@ -33,48 +33,74 @@ public class HttpServer2 {
 
 		return fileData;
 	}
-	
-	public static void respuestaSolicitud(Socket clientSocket, PrintWriter out, BufferedReader in, BufferedOutputStream salidaDatos) throws IOException {
-		
+
+	public static void respuestaSolicitud(Socket clientSocket, PrintWriter out, BufferedReader in,
+		BufferedOutputStream salidaDatos) throws IOException {
 		String inputLine, solicitud = "";
 		int count = 0;
 		while ((inputLine = in.readLine()) != null) {
 			System.out.println("Received: " + inputLine);
-			if (count < 1) solicitud = inputLine; // Lee la primera línea de la solicitud
-			if (!in.ready()) break;	count++;
+			if (count < 1)
+				solicitud = inputLine; // Lee la primera línea de la solicitud
+			if (!in.ready())
+				break;
+			count++;
 		}
 
 		StringTokenizer tokens = new StringTokenizer(solicitud); // Divide la solicitud en diferentes "tokens".
-		String metodo = tokens.nextToken().toUpperCase(); // Obtenemos el primer token, que en este caso es el método de la solicitud HTTP.
-		String archivoSolicitud = tokens.nextToken().toLowerCase(); // Obtenemos el segundo token que es el archivo con su tipo a enviar.
+		String metodo = tokens.nextToken().toUpperCase(); // Obtenemos el primer token, que en este caso es el método de
+															// la solicitud HTTP.
+		String archivoSolicitud = tokens.nextToken().toLowerCase(); // Obtenemos el segundo token que es el archivo con
+																	// su tipo a enviar.
 
 		String content = "";
 		String error = "200 ", mensaje = "OK";
-		if (!archivoSolicitud.equals("/")) {	
-			if(archivoSolicitud.contains(".")) {	
+		if (!archivoSolicitud.equals("/")) {
+			if (archivoSolicitud.contains(".")) {
 				String tipoArchivo = archivoSolicitud.substring(archivoSolicitud.indexOf(".") + 1);
 				String nombreArchivo = archivoSolicitud.substring(0, archivoSolicitud.indexOf("."));
-				if (tipoArchivo.equals("html")) content = "text/html";
-				else if (tipoArchivo.equals("png")) content = "image/png";
-				else { error = "400 "; mensaje = "BAD REQUEST";}
 				archivo = nombreArchivo + "." + tipoArchivo;
-			} else {error = "400 "; mensaje = "BAD REQUEST";}
+				if (tipoArchivo.equals("html"))
+					content = "text/html";
+				else if (tipoArchivo.equals("png"))
+					content = "image/png";
+				else {
+					error = "400 ";
+					mensaje = "BAD REQUEST";
+					archivo = "badRequest.html";
+					content = "text/html";
+				}
+
+			} else {
+				error = "400 ";
+				mensaje = "BAD REQUEST";
+				archivo = "badRequest.html";
+				content = "text/html";
+			}
 		}
-		
+
 		File file = null;
 		int fileLength = 0;
 		byte[] datos = new byte[0];
-		try {
-			file = new File(RUTA, archivo);
-			if (file.exists()) {
-				error = "200 ";
-				mensaje = "OK";
-				fileLength = (int) file.length();
-				datos = convertirABytes(file, fileLength);
-			}
-		} catch (FileNotFoundException e) { error = "404 "; mensaje = "NOT FOUND"; }
 
-		// Se debe enviar el encabezado de respuesta, para que el cliente entienda y muestre lo que el servidor envió.
+		file = new File(RUTA, archivo);
+		System.out.println(file.exists());
+		if (file.exists()) {
+			error = "200 ";
+			mensaje = "OK";
+
+		} else {
+			error = "404 ";
+			mensaje = "NOT FOUND";
+			archivo = "fileNotFound.html";
+			file = new File(RUTA, archivo);
+			content = "text/html";
+		}
+		fileLength = (int) file.length();
+		datos = convertirABytes(file, fileLength);
+
+		// Se debe enviar el encabezado de respuesta, para que el cliente entienda y
+		// muestre lo que el servidor envió.
 		out.println("HTTP/1.1 " + error + mensaje);
 		out.println("Content-type: " + content);
 		out.println("Content-length: " + fileLength);
@@ -96,19 +122,21 @@ public class HttpServer2 {
 		}
 
 		Socket clientSocket = null;
-		PrintWriter out = null; 
-		BufferedReader in = null; 
+		PrintWriter out = null;
+		BufferedReader in = null;
 		BufferedOutputStream salidaDatos = null;
 		try {
 			System.out.println("Listo para recibir. Escuchando puerto " + PUERTO);
 			while (true) {
 				clientSocket = serverSocket.accept();
-				out = new PrintWriter(clientSocket.getOutputStream(), true); // El in y el out son para el flujo de datos por el socket.
+				out = new PrintWriter(clientSocket.getOutputStream(), true); // El in y el out son para el flujo de
+																				// datos por el socket.
 				in = new BufferedReader(new InputStreamReader(clientSocket.getInputStream()));
-				salidaDatos = new BufferedOutputStream(clientSocket.getOutputStream()); // Muestra los datos respuesta al cliente.
+				salidaDatos = new BufferedOutputStream(clientSocket.getOutputStream()); // Muestra los datos respuesta
+																						// al cliente.
 				respuestaSolicitud(clientSocket, out, in, salidaDatos);
 			}
-			
+
 		} catch (IOException e) {
 			System.err.println("Accept failed.");
 			System.exit(1);
